@@ -25,6 +25,30 @@ function attack() {
   }
 }
 
+function counterAttack() {
+  if (!isWaiting) {
+    hero.setDiceHtml();
+    monster.setDiceHtml();
+
+    const heroDamage = Math.ceil(
+      (hero.currentDiceScore.reduce((total, roll) => total + roll, 0) +
+        hero.attack) /
+        2,
+    );
+    const bonusDamage = hero.currentDiceScore.includes(6) ? 5 : 0;
+    const monsterDamage = Math.ceil(
+      (monster.currentDiceScore.reduce((total, roll) => total + roll, 0) +
+        monster.attack) /
+        2,
+    );
+
+    monster.takeDamage([heroDamage + bonusDamage]);
+    hero.takeDamage([monsterDamage]);
+    render();
+    finishTurn();
+  }
+}
+
 function useAbility() {
   if (!isWaiting && hero.specialAttack && !hero.abilityUsed) {
     hero.setDiceHtml();
@@ -73,6 +97,8 @@ function finishTurn() {
   if (hero.dead) {
     endGame();
   } else if (monster.dead) {
+    hero.heal(10);
+    render();
     isWaiting = true;
     if (monstersArray.length > 0) {
       setTimeout(() => {
@@ -115,13 +141,24 @@ function endGame() {
 
 document.getElementById("attack-button").addEventListener("click", attack);
 document
+  .getElementById("counter-button")
+  .addEventListener("click", counterAttack);
+document
   .getElementById("hability-button")
   .addEventListener("click", useAbility);
 
 function renderHeroOptions() {
   const optionsHtml = heroesArray
     .map((heroId) => {
-      const { name, avatar, health, attack, diceCount } = characterData[heroId];
+      const {
+        name,
+        avatar,
+        health,
+        attack,
+        diceCount,
+        specialAttack,
+        specialAttackDescription,
+      } = characterData[heroId];
       return `
             <button class="hero-choice" type="button" data-hero="${heroId}">
                 <img class="hero-choice-avatar" src="${avatar}" alt="${name}" />
@@ -129,6 +166,7 @@ function renderHeroOptions() {
                 <span class="hero-choice-stat">Health <b>${health}</b></span>
                 <span class="hero-choice-stat">Attack <b>+${attack}</b></span>
                 <span class="hero-choice-stat">Attack dice <b>${diceCount}</b></span>
+                <span class="hero-choice-ability"><b>${specialAttack}</b>: ${specialAttackDescription} <small>Once per enemy</small></span>
             </button>`;
     })
     .join("");

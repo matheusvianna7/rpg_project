@@ -23,6 +23,10 @@ class Character {
     this.diceHtml = getDicePlaceholderHtml(this.diceCount);
   }
 
+  heal(amount) {
+    this.health = Math.min(this.maxHealth, this.health + amount);
+  }
+
   takeDamage(attackScoreArray) {
     const totalAttackScore = attackScoreArray.reduce(
       (total, num) => total + num,
