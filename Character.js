@@ -8,6 +8,7 @@ class Character {
   constructor(data) {
     Object.assign(this, data);
     this.maxHealth = this.health;
+    this.currentDiceScore = [];
     this.diceHtml = getDicePlaceholderHtml(this.diceCount);
   }
 
@@ -27,11 +28,8 @@ class Character {
     this.health = Math.min(this.maxHealth, this.health + amount);
   }
 
-  takeDamage(attackScoreArray) {
-    const totalAttackScore = attackScoreArray.reduce(
-      (total, num) => total + num,
-    );
-    this.health -= totalAttackScore;
+  takeDamage(damage) {
+    this.health -= damage;
     if (this.health <= 0) {
       this.dead = true;
       this.health = 0;

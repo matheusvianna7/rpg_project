@@ -5,11 +5,10 @@ const characterData = {
     health: 70,
     attack: 1,
     diceCount: 3,
-    currentDiceScore: [],
     emoji: "🧙🏽‍♂️",
     specialAttack: "Fireball",
     specialAttackDescription:
-      "Cada dado causa 1 de dano (1-3), 8 (4-5) ou 10 (6).",
+      "Each dice deals 1 damage (1-3), 8 damage (4-5), or 10 damage (6).",
   },
   knight: {
     name: "Knight",
@@ -17,11 +16,10 @@ const characterData = {
     health: 80,
     attack: 2,
     diceCount: 2,
-    currentDiceScore: [],
     emoji: "🛡",
     specialAttack: "Shield Bash",
     specialAttackDescription:
-      "Cada dado causa 1 (1-3) ou 10 (4-5). Um 6 causa 22 no total; dois 6 causam 25.",
+      "Each dice deals 1 damage (1-3) or 10 damage (4-5). A 6 deals 22 total; two 6s deal 25.",
   },
   elf: {
     name: "Elf",
@@ -29,11 +27,10 @@ const characterData = {
     health: 75,
     attack: 3,
     diceCount: 2,
-    currentDiceScore: [],
     emoji: "🧝🏼‍♂️",
     specialAttack: "Arrow Shot",
     specialAttackDescription:
-      "O maior dado causa 4 (1-2), 8 (3-4), 10 (5) ou 15 (6) de dano.",
+      "The highest dice deals 4 damage (1-2), 8 (3-4), 10 (5), or 15 (6).",
   },
   orc: {
     name: "Orc",
@@ -41,7 +38,6 @@ const characterData = {
     health: 50,
     attack: 2,
     diceCount: 2,
-    currentDiceScore: [],
     emoji: "💀",
   },
   demon: {
@@ -50,7 +46,6 @@ const characterData = {
     health: 40,
     attack: 3,
     diceCount: 1,
-    currentDiceScore: [],
     emoji: "💀",
   },
   goblin: {
@@ -59,7 +54,6 @@ const characterData = {
     health: 30,
     attack: 1,
     diceCount: 3,
-    currentDiceScore: [],
     emoji: "💀",
   },
 };
