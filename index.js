@@ -1,11 +1,24 @@
 import characterData from "./data.js";
 import Character from "./Character.js";
 
-let monstersArray = ["orc", "demon", "goblin"];
+const monsterIds = ["orc", "demon", "goblin"];
+let monstersArray = [];
 let heroesArray = ["wizard", "knight", "elf"];
 let isWaiting = false;
 let hero;
 let monster;
+
+function getShuffledMonsters() {
+  const shuffledMonsters = [...monsterIds];
+  for (let index = shuffledMonsters.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffledMonsters[index], shuffledMonsters[randomIndex]] = [
+      shuffledMonsters[randomIndex],
+      shuffledMonsters[index],
+    ];
+  }
+  return shuffledMonsters;
+}
 
 function getNewMonster() {
   const nextMonsterData = characterData[monstersArray.shift()];
@@ -148,7 +161,18 @@ function resolveTurn(playerAction) {
     const isHeroAction = actor === hero;
     const action = isHeroAction ? playerAction : "attack";
     const target = isHeroAction ? monster : hero;
-    const damage = calculateActionDamage(actor, action, isHeroAction);
+    const calculatedDamage = calculateActionDamage(actor, action, isHeroAction);
+    const isCounteringEnemyAttack =
+      !isHeroAction && playerAction === "counterAttack";
+    const damage = isCounteringEnemyAttack
+      ? Math.ceil(calculatedDamage / 2)
+      : calculatedDamage;
+
+    if (isCounteringEnemyAttack) {
+      turnMessages.push(
+        `<span class="battle-message-line">🛡️ ${hero.name} reduces incoming damage by half.</span>`,
+      );
+    }
 
     if (isHeroAction && action === "ability") {
       hero.abilityUsed = true;
@@ -281,6 +305,7 @@ function renderHeroOptions() {
 
 function startGame(heroId) {
   hero = new Character(characterData[heroId]);
+  monstersArray = getShuffledMonsters();
   monster = getNewMonster();
   const abilityButton = document.getElementById("hability-button");
   abilityButton.textContent = hero.specialAttack;
