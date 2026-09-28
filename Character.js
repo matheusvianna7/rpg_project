@@ -46,14 +46,14 @@ class Character {
   }
 
   getCharacterHtml() {
-    const { elementId, name, avatar, health, attack, diceCount, diceHtml } =
-      this;
+    const { name, avatar, health, attack, speed, diceHtml } = this;
     const healthBar = this.getHealthBarHtml();
     return `
             <div class="character-card">
                 <h4 class="name"> ${name} </h4>
                 <img class="avatar" src="${avatar}" />
                 <div class="health">attack: <b> +${attack} </b></div>
+                <div class="health">speed: <b> ${speed} </b></div>
                 <div class="health">health: <b> ${health} </b></div>
                 ${healthBar}
                 <div class="dice-container">

@@ -53,79 +53,159 @@ function calculateCounterAttackDamage(character, applySixBonus = false) {
   return reducedDamage + bonusDamage;
 }
 
+function showBattleMessage(message) {
+  const messageElement = document.getElementById("battle-message");
+  messageElement.innerHTML = message;
+  messageElement.hidden = false;
+}
+
+function formatAttackRoll(character) {
+  const diceTotal = character.currentDiceScore.reduce(
+    (total, roll) => total + roll,
+    0,
+  );
+  const attackBonus = character.attack ? ` (+${character.attack} attack)` : "";
+
+  return `${character.currentDiceScore.join(" + ")} = ${diceTotal}${attackBonus}`;
+}
+
+function formatDiceRolls(character) {
+  return character.currentDiceScore.join(" + ");
+}
+
 const abilityDamageCalculators = {
   Fireball: calculateFireballDamage,
   "Shield Bash": calculateShieldBashDamage,
   "Arrow Shot": calculateArrowShotDamage,
 };
 
-function attack() {
-  if (!isWaiting) {
-    hero.setDiceHtml();
-    monster.setDiceHtml();
-    const heroDamage = calculateAttackDamage(hero);
-    const monsterDamage = calculateAttackDamage(monster);
-    hero.takeDamage(monsterDamage);
-    monster.takeDamage(heroDamage);
-    render();
-    finishTurn();
+function calculateActionDamage(character, action, isHeroAction) {
+  if (action === "ability") {
+    return abilityDamageCalculators[character.specialAttack](character);
   }
+
+  if (action === "counterAttack") {
+    return calculateCounterAttackDamage(character, isHeroAction);
+  }
+
+  return calculateAttackDamage(character);
 }
 
-function counterAttack() {
-  if (!isWaiting) {
-    hero.setDiceHtml();
-    monster.setDiceHtml();
-
-    const heroDamage = calculateCounterAttackDamage(hero, true);
-    const monsterDamage = calculateCounterAttackDamage(monster);
-
-    monster.takeDamage(heroDamage);
-    hero.takeDamage(monsterDamage);
-    render();
-    finishTurn();
+function getActionMessage(actor, target, action, damage) {
+  let heading;
+  let emoji;
+  if (action === "ability") {
+    heading = actor.specialAttack.toUpperCase();
+    emoji = { Fireball: "🔥", "Shield Bash": "🛡️", "Arrow Shot": "🏹" }[
+      actor.specialAttack
+    ];
+  } else if (action === "counterAttack") {
+    heading = `${actor.name.toUpperCase()} COUNTERS!`;
+    emoji = "🛡️";
+  } else {
+    heading = `${actor.name.toUpperCase()} ATTACKS!`;
+    emoji = "⚔️";
   }
+
+  const diceResult =
+    action === "ability" || action === "counterAttack"
+      ? formatDiceRolls(actor)
+      : formatAttackRoll(actor);
+  const damageMessage =
+    action === "ability"
+      ? `${actor.name} deals ${damage} damage!`
+      : `${target.name} takes ${damage} damage!`;
+
+  return `
+    <strong class="battle-message-title">${emoji} ${heading}</strong>
+    <span class="battle-message-line">🎲 ${diceResult}</span>
+    <span class="battle-message-line">💥 ${damageMessage}</span>
+  `;
 }
 
-function useAbility() {
-  if (!isWaiting && hero.specialAttack && !hero.abilityUsed) {
-    const calculateDamage = abilityDamageCalculators[hero.specialAttack];
-    if (!calculateDamage) return;
-
-    hero.setDiceHtml();
-    monster.setDiceHtml();
-
-    const abilityDamage = calculateDamage(hero);
-
-    hero.abilityUsed = true;
-    document.getElementById("hability-button").disabled = true;
-    monster.takeDamage(abilityDamage);
-    const monsterDamage = calculateAttackDamage(monster);
-    hero.takeDamage(monsterDamage);
-    render();
-    finishTurn();
+function resolveTurn(playerAction) {
+  if (isWaiting) return;
+  if (
+    playerAction === "ability" &&
+    (!hero.specialAttack ||
+      hero.abilityUsed ||
+      !abilityDamageCalculators[hero.specialAttack])
+  ) {
+    return;
   }
+
+  hero.setDiceHtml();
+  monster.setDiceHtml();
+
+  const heroActsFirst = hero.speed >= monster.speed;
+  const firstActor = heroActsFirst ? hero : monster;
+  const secondActor = heroActsFirst ? monster : hero;
+  const turnMessages = [
+    `<span class="battle-message-line">🏁 Speed: ${hero.name} ${hero.speed} vs ${monster.name} ${monster.speed}. ${firstActor.name} acts first${hero.speed === monster.speed ? " (tie)" : ""}.</span>`,
+  ];
+
+  const executeAction = (actor) => {
+    const isHeroAction = actor === hero;
+    const action = isHeroAction ? playerAction : "attack";
+    const target = isHeroAction ? monster : hero;
+    const damage = calculateActionDamage(actor, action, isHeroAction);
+
+    if (isHeroAction && action === "ability") {
+      hero.abilityUsed = true;
+      document.getElementById("hability-button").disabled = true;
+    }
+
+    target.takeDamage(damage);
+    turnMessages.push(getActionMessage(actor, target, action, damage));
+  };
+
+  executeAction(firstActor);
+  if (!hero.dead && !monster.dead) {
+    executeAction(secondActor);
+  }
+
+  render();
+  finishTurn(turnMessages);
 }
 
-function finishTurn() {
+function finishTurn(turnMessages) {
   if (hero.dead) {
+    turnMessages.push(
+      `<strong class="battle-message-title">💀 ${hero.name.toUpperCase()} DEFEATED!</strong>`,
+    );
+    showBattleMessage(turnMessages.join(""));
     endGame();
   } else if (monster.dead) {
+    const previousHealth = hero.health;
     hero.heal(10);
+    const healedHealth = hero.health - previousHealth;
     render();
     isWaiting = true;
-    if (monstersArray.length > 0) {
-      setTimeout(() => {
+    showBattleMessage(turnMessages.join(""));
+    setTimeout(() => {
+      const defeatedMessage = `
+        <strong class="battle-message-title">💀 ${monster.name.toUpperCase()} DEFEATED!</strong>
+        <span class="battle-message-line">💚 ${hero.name} recovers ${healedHealth} HP.</span>
+      `;
+
+      if (monstersArray.length > 0) {
+        turnMessages.push(defeatedMessage);
+        showBattleMessage(turnMessages.join(""));
         hero.clearDiceHtml();
         hero.abilityUsed = false;
         document.getElementById("hability-button").disabled = false;
         monster = getNewMonster();
         render();
+        showBattleMessage(defeatedMessage);
         isWaiting = false;
-      }, 1500);
-    } else {
-      endGame();
-    }
+      } else {
+        turnMessages.push(defeatedMessage);
+        showBattleMessage(turnMessages.join(""));
+        endGame();
+      }
+    }, 2000);
+  } else {
+    showBattleMessage(turnMessages.join(""));
   }
 }
 
@@ -154,16 +234,18 @@ function endGame() {
     document
       .getElementById("new-game-button")
       .addEventListener("click", () => window.location.reload());
-  }, 1500);
+  }, 3000);
 }
 
-document.getElementById("attack-button").addEventListener("click", attack);
+document
+  .getElementById("attack-button")
+  .addEventListener("click", () => resolveTurn("attack"));
 document
   .getElementById("counter-button")
-  .addEventListener("click", counterAttack);
+  .addEventListener("click", () => resolveTurn("counterAttack"));
 document
   .getElementById("hability-button")
-  .addEventListener("click", useAbility);
+  .addEventListener("click", () => resolveTurn("ability"));
 
 function renderHeroOptions() {
   const optionsHtml = heroesArray
@@ -173,6 +255,7 @@ function renderHeroOptions() {
         avatar,
         health,
         attack,
+        speed,
         diceCount,
         specialAttack,
         specialAttackDescription,
@@ -183,6 +266,7 @@ function renderHeroOptions() {
                 <span class="hero-choice-name">${name}</span>
                 <span class="hero-choice-stat">Health <b>${health}</b></span>
                 <span class="hero-choice-stat">Attack <b>+${attack}</b></span>
+                <span class="hero-choice-stat">Speed <b>${speed}</b></span>
                 <span class="hero-choice-stat">Attack dice <b>${diceCount}</b></span>
                 <span class="hero-choice-ability"><b>${specialAttack}</b>: ${specialAttackDescription} <small>Once per enemy</small></span>
             </button>`;
