@@ -130,6 +130,10 @@ p {
   text-align: left;
 }
 
+body.in-battle > p {
+  display: none;
+}
+
 .battle-message-title,
 .battle-message-line {
   display: block;
@@ -147,6 +151,38 @@ main {
   margin-top: 0.5rem;
 }
 
+#battle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "hero monster"
+    "message message";
+  align-items: stretch;
+  width: min(96vw, 1050px);
+  gap: 0.65rem;
+  margin: 0.5rem auto;
+}
+
+#hero {
+  grid-area: hero;
+  min-width: 0;
+}
+
+#monster {
+  grid-area: monster;
+  min-width: 0;
+}
+
+#battle-message {
+  grid-area: message;
+  width: 100%;
+  min-height: 8.5rem;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
 @media (min-width: 550px) {
   main {
     flex-direction: row;
@@ -154,6 +190,22 @@ main {
     justify-content: center;
     width: 86vw;
     gap: 2rem;
+  }
+}
+
+@media (min-width: 760px) {
+  #battle {
+    grid-template-columns: minmax(180px, 230px) minmax(260px, 1fr) minmax(
+        180px,
+        230px
+      );
+    grid-template-areas: "hero message monster";
+    align-items: center;
+    gap: 1rem;
+  }
+
+  #battle-message {
+    min-height: 10rem;
   }
 }
 
@@ -175,6 +227,15 @@ main {
     0px 0px 10px rgba(117, 182, 214, 0.2);
 }
 
+#battle .character-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 18rem;
+  padding: 0.6rem;
+  font-size: 1rem;
+}
+
 @media (min-width: 550px) {
   .character-card {
     border: 0.2rem solid #000721;
@@ -183,11 +244,23 @@ main {
   }
 }
 
+@media (min-width: 760px) {
+  #battle .character-card {
+    height: 24rem;
+    padding: 0.75rem;
+    font-size: 1.2rem;
+  }
+}
+
 .name {
   margin: 1vh 0;
   width: 100%;
   letter-spacing: 0.1em;
   font-size: 90%;
+}
+
+#battle .name {
+  margin: 0.5rem 0;
 }
 
 @media (min-width: 550px) {
@@ -206,6 +279,11 @@ main {
   background-color: rgba(0, 7, 33, 0.5);
 }
 
+#battle .avatar {
+  width: clamp(44px, 9vh, 72px);
+  aspect-ratio: 1;
+}
+
 @media (min-width: 550px) {
   .avatar {
     width: 14vh;
@@ -220,6 +298,11 @@ main {
   margin: 0.5vh 5%;
   color: #ccc;
   letter-spacing: 0.03em;
+}
+
+#battle .health {
+  margin: 0.3rem 5%;
+  font-size: 0.9rem;
 }
 
 @media (min-width: 550px) {
@@ -244,8 +327,27 @@ main {
   border-radius: 2px;
 }
 
+#battle .health-bar-outer {
+  bottom: calc(20% + 0.35rem);
+  margin: 0;
+}
+
 @media (min-width: 550px) {
   .health-bar-outer {
+    bottom: calc(25% + 0.5rem);
+  }
+}
+
+@media (min-width: 760px) {
+  #battle .avatar {
+    width: 12vh;
+  }
+
+  #battle .health {
+    font-size: 1rem;
+  }
+
+  #battle .health-bar-outer {
     bottom: calc(25% + 0.5rem);
   }
 }
@@ -366,6 +468,36 @@ button:focus {
   margin: 0;
   padding: 0 1.25rem;
   font-size: 1.25rem;
+}
+
+@media (max-width: 549px) {
+  #battle .character-card {
+    height: 15rem;
+  }
+
+  #battle-message {
+    min-height: 0;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+    line-height: 1.25;
+  }
+
+  #actions {
+    width: 96vw;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    margin: 0.35rem 0 0.75rem;
+  }
+
+  #actions button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 2.5rem;
+    height: auto;
+    padding: 0 0.25rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
 }
 
 .end-game {

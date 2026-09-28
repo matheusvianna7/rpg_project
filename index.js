@@ -307,6 +307,7 @@ function startGame(heroId) {
   hero = new Character(characterData[heroId]);
   monstersArray = getShuffledMonsters();
   monster = getNewMonster();
+  document.body.classList.add("in-battle");
   const abilityButton = document.getElementById("hability-button");
   abilityButton.textContent = hero.specialAttack;
   abilityButton.hidden = !hero.specialAttack;
